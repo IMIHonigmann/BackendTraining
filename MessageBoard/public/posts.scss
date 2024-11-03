@@ -1,0 +1,26 @@
+.post {
+    border-style: solid;
+    border-radius: 10px;
+
+    .user {
+        color: red;
+        text-align: left;
+    }
+    
+    .text {
+        text-align: right;
+    }
+}
+
+.date {
+    padding-left: 10px;
+}
+
+.rolexflexbox {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+}
+

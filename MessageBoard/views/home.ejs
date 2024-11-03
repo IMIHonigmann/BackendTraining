@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/styles.css">
+  </head>
+  <body>
+    <h1> testin </h1>
+    <% threads.forEach(thread => { %>
+      <h2><%= thread.title %></h2>
+      <h3><%= thread.description %></h3>
+      <h3>⬆<%= thread.likes %>⬇</h3>
+      <br/>
+    <% }) %>
+  </body>
+</html>
