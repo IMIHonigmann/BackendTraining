@@ -1,6 +1,11 @@
 const threads = require('../databases/threads')
 const posts = require('../databases/userPosts')
 
+const getPrevLink = (req) => {
+    const fullLink = req.header('Referer')?.split('/')
+    return `/${fullLink[fullLink.length-2]}`
+}
+
 async function getThreadById(req, res) {
     const { threadId } = req.params;
     console.log(threadId);
@@ -36,15 +41,21 @@ function renderForm(req, res) {
     res.render("newthread", {})
 }
 
+function showNewUser(req, res) {
+    res.render("login", {})
+}
+
+function openUser(req, res) {
+    const { fullName } = req.body
+    res.redirect(getPrevLink(req))
+}
+
 function openThread(req, res) {
-    console.log('Form data received:', req.body);
+    console.log('Form data received:', req.body)
     const { title, threadtext } = req.body
     threads.addThread(title, threadtext)
     
-    const fullLink = req.header('Referer')?.split('/')
-    const prev = fullLink[fullLink.length-2]
-
-    res.redirect(`/${prev}`)
+    res.redirect(getPrevLink(req))
 }
 
-module.exports = { getThreadById, getThreadByIdEJS, getAllThreads, renderForm, openThread }
+module.exports = { getThreadById, getThreadByIdEJS, getAllThreads, renderForm, openThread, showNewUser, openUser }

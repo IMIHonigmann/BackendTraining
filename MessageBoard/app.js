@@ -1,11 +1,12 @@
 const express = require("express");
+const { body, validationResult } = require("express-validator");
 const app = express();
 const dotenv = require("@dotenvx/dotenvx")
 const path = require("path")
 const db = require("./db")
 const authorRouter = require("./routes/authorRouter")
 const threadRouter = require("./routes/threadRouter")
-const { openThread } = require("./controllers/threadController")
+const { openThread, openUser } = require("./controllers/threadController")
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -23,6 +24,7 @@ app.get("/currenthotshit", (req, res) => res.sendFile)
 app.use("/authors", authorRouter)
 app.use("/home", threadRouter)
 app.post('/new', openThread);
+app.post('/create', openUser);
 
 const PORT = process.env.LIGMA;
 app.listen(PORT, () => {
