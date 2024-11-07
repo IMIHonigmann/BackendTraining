@@ -1,0 +1,10 @@
+<html>
+    <body>
+        <h1> <%= filteredElements.length %> matching entries have been found </h1>
+        <ul>
+            <% filteredElements.forEach(filteredElement => { %>
+                <li> Name: <%= filteredElement.firstName %> <%= filteredElement.lastName %> </li>
+            <% }) %>
+        </ul>
+    </body>
+</html>
