@@ -1,0 +1,22 @@
+<html>
+    <body>
+        <form action="/searchResults" method="get">
+            <div class="radio-group">
+                <input type="radio" id="startswith" name="searchType" value="starts">
+                <label for="startswith"> Starts With </label>
+
+                <input type="radio" id="includes" name="searchType"   value="includes" checked>
+                <label for="includes">Includes </label>
+
+                <input type="radio" id="endswith" name="searchType"   value="ends">
+                <label for="endswith">Ends with </label>
+
+                <input type="radio" id="exclusive" name="searchType"  value="exclusive">
+                <label for="exclusive">Contains Exclusively </label>
+            </div>
+            <label for="searchString">Search for: </label>
+            <input type="text" name="searchString" id="searchString">
+            <button type="submit"> Search! </button>
+        </form>
+    </body>
+</html>
