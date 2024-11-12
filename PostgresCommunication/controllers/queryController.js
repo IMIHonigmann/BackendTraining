@@ -2,11 +2,16 @@ const db = require("../db/queries");
 
 async function getUsernames(req, res) {
     const users = await db.getAllUsernames()
-    res.send("Niggers: " + users.map(user => user.username).join(", "))
+    res.send("Cool People: " + users.map(user => user.username).join(", "))
 }
 
 function test(req, res) {
     res.send("worked")
+}
+
+async function deleteAll(req, res) {
+    await db.clearTable()
+    res.send('successfully deleted everyone in your moms basement')
 }
 
 async function createDatabase(req, res) {
@@ -46,4 +51,5 @@ module.exports = {
     test,
     searchFor,
     openSearchPage,
+    deleteAll,
   };

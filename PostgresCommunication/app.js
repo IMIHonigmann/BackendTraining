@@ -9,6 +9,8 @@ app.use(express.json())
 app.set('views', path.join(__dirname, 'views'))
 app.set("view engine", "ejs")
 
+app.get('/delete', controller.deleteAll)
+app.get('/showall', controller.getUsernames)
 app.get('/searchResults', controller.searchFor)
 app.get('/insertoffensive', controller.createUsernameGet)
 app.get('/search', controller.openSearchPage)

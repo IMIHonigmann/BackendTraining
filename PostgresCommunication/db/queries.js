@@ -15,6 +15,15 @@ async function createTable() {
     console.log("success")
 }
 
+async function clearTable() {
+    try {
+        await pool.query(`delete from assholes`)
+    }
+    catch (error) {
+        console.error(`Couldn't remove users`, error)
+    }
+}
+
 async function getAllUsernames() {
     const { rows } = await pool.query("select * from assholes")
     return rows
@@ -72,5 +81,6 @@ module.exports = {
     createTable,
     insertUsername,
     insertUsernames,
-    searchUsers
+    searchUsers,
+    clearTable
 }
