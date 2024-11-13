@@ -5,10 +5,10 @@
   <body>
     <h1>
       <h1><%= message %></h1>
-      <h2><%= targetPost.title %></h2>
-      <h3><%= targetPost.description %></h3>
+      <h2><%= targetThread.title %></h2>
+      <h3><%= targetThread.description %></h3>
       <br/>
-      <% allPosts.forEach(post => {%>
+      <% posts.forEach(post => {%>
         <div class="post">
           <div class="rolexflexbox">
             <span class="text"><%= post.text  %></span>

@@ -1,0 +1,5 @@
+DELETE FROM userposts;
+DELETE FROM threads;
+
+DROP TABLE IF EXISTS userposts;
+DROP TABLE IF EXISTS threads;

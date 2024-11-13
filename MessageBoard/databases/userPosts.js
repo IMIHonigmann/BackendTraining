@@ -1,35 +1,13 @@
-const messages = [
-    {
-      text: "Hi there!",
-      user: "Amando",
-      added: new Date()
-    },
-    {
-      text: "Hello Gooners!",
-      user: "Charles",
-      added: new Date()
-    }
-  ];
-
-  messages.push({
-    text: "New message!",
-    user: "New User",
-    added: new Date(),
-    likes: 0
-  });
-  
-  let messageId = 0
-  messages.forEach(message => {
-      message.id = messageId
-      messageId++
-    })
+const pool = require('./pool')
 
   async function getMsgById(messageId) {
-    return messages.find(msg => msg.id === messageId)
+    const { rows } = await pool.query(`select * from userposts where id = $1`, [messageId])
+    return rows
   };
 
-  function getAll() {
-    return messages
+  async function getAll() {
+    const { rows } = await pool.query(`select * from userposts`)
+    return rows
   }
 
 module.exports = { getMsgById, getAll };
