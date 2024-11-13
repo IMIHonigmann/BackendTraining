@@ -1,3 +1,7 @@
+const pool = require('./pool')
+const dotenv = require('@dotenvx/dotenvx')
+dotenv.config()
+
 const threads = [
     {
         title: "Can't write a fucking for loop",
@@ -32,8 +36,9 @@ async function getThreadById(threadId) {
     return threads.find(thread => thread.id === threadId)
 }
 
-function getAll() {
-    return threads;
+async function getAll() {
+    const { rows } = await pool.query(`select * from threads`)
+    return rows;
 }
 
 function addThread(title, description) {

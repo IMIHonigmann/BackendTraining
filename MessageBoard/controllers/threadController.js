@@ -1,4 +1,4 @@
-const threads = require('../databases/threads')
+const queries = require('../databases/queries')
 const posts = require('../databases/userPosts')
 
 const getPrevLink = (req) => {
@@ -9,7 +9,7 @@ const getPrevLink = (req) => {
 async function getThreadById(req, res) {
     const { threadId } = req.params;
     console.log(threadId);
-    const targetPost = await threads.getThreadById(Number(threadId))
+    const targetPost = await queries.getThreadById(Number(threadId))
 
     if (!targetPost) {
         res.status(404).send("Thread doesn't exist");
@@ -21,7 +21,7 @@ async function getThreadById(req, res) {
 
 async function getThreadByIdEJS(req, res) {
     const { threadId } = req.params;
-    const targetPost = await threads.getThreadById(Number(threadId))
+    const targetPost = await queries.getThreadById(Number(threadId))
     const allPosts = posts.getAll()
 
     if (!targetPost) {
@@ -32,8 +32,8 @@ async function getThreadByIdEJS(req, res) {
     res.render("threads", { message: "Rebbit", targetPost, allPosts })
 }
 
-function getAllThreads(req, res) {
-    const allThreads = threads.getAll()
+async function getAllThreads(req, res) {
+    const allThreads = await queries.getAll()
     res.render("home", { threads: allThreads })
 }
 
@@ -53,7 +53,7 @@ function openUser(req, res) {
 function openThread(req, res) {
     console.log('Form data received:', req.body)
     const { title, threadtext } = req.body
-    threads.addThread(title, threadtext)
+    queries.addThread(title, threadtext)
     
     res.redirect(getPrevLink(req))
 }
