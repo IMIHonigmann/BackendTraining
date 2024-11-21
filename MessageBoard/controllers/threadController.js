@@ -48,11 +48,10 @@ function openUser(req, res) {
   res.redirect(getPrevLink(req));
 }
 
-// TODO: rewrite it to use pg
-function openThread(req, res) {
+async function openThread(req, res) {
   console.log("Form data received:", req.body);
   const { title, threadtext } = req.body;
-  queries.addThread(title, threadtext);
+  await queries.addThread(title, threadtext);
 
   res.redirect(getPrevLink(req));
 }
