@@ -13,32 +13,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Product {
   id          Int      @id @default(autoincrement())
   name        String
   description String
   price       Float
   quantity    Int
   categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
   supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
   locationId  Int
+  location    Location @relation(fields: [locationId], references: [id])
   status      Boolean
   releaseDate DateTime
 }
 
 model Category {
-  id          Int    @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String
+  Product     Product[]
 }
 
 model Supplier {
-  id          Int    @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String
+  Product     Product[]
 }
 
 model Location {
-  id   Int    @id @default(autoincrement())
-  name String
+  id      Int       @id @default(autoincrement())
+  name    String
+  Product Product[]
 }
