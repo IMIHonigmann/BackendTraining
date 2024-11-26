@@ -1,0 +1,45 @@
+<html>
+<body>
+<h1>All Products</h1>
+
+<h2>Filter</h2>
+<% categories.forEach(category => { %>
+    <input type="checkbox" onchange="UseFilter('<%=category.name%>', this)" name="<%= category.name %>"></input>
+    <label for="<%= category.name %>"> <%= category.name %> </label>
+    <br>
+<% }) %>
+
+<h2>Matches</h2>
+<ul id="categoryList">
+    <% products.forEach(product => { %>
+        <li> <%= product.name %></li>
+    <% }) %>
+</ul>
+
+
+<script>
+    async function UseFilter(filter, checkbox) {
+        const isChecked = checkbox.checked
+        console.log(filter, isChecked)
+        fetch('/filterCategories', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ filter, isChecked })
+        })
+            .then(response => response.json())
+            .then(data => {
+                const categoryList = document.getElementById('categoryList');
+                categoryList.innerHTML = '';
+                data.filterMatches.forEach(match => {
+                    const li = document.createElement('li');
+                    li.textContent = match.name;
+                    categoryList.appendChild(li);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
