@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import express from 'express';
+import productRouter from './routes/storeFront'
 import readController from './controllers/readController'
 const prisma = new PrismaClient()
 const app = express();
@@ -13,8 +14,10 @@ app.set('views', './src/views')
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
-app.get('/nigga', readController.ReadAll)
+
 app.post('/filterCategories', readController.FilterCategories)
+
+app.use('/nigga', productRouter)
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

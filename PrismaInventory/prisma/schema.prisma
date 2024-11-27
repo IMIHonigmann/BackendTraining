@@ -13,19 +13,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum quantityState {
+  Available
+  Running_Low
+  Out_Of_Stock
+}
+
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   name        String
   description String
   price       Float
-  quantity    Int
+  quantity    Int           @default(0)
   categoryId  Int?
-  category    Category? @relation(fields: [categoryId], references: [id])
+  category    Category?     @relation(fields: [categoryId], references: [id])
   supplierId  Int
-  supplier    Supplier  @relation(fields: [supplierId], references: [id])
+  supplier    Supplier      @relation(fields: [supplierId], references: [id])
   locationId  Int
-  location    Location  @relation(fields: [locationId], references: [id])
-  status      Boolean
+  location    Location      @relation(fields: [locationId], references: [id])
+  isAvailable quantityState @default(Out_Of_Stock)
   releaseDate DateTime
 }
 

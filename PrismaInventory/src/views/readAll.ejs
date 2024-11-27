@@ -33,9 +33,13 @@
                 const categoryList = document.getElementById('categoryList');
                 categoryList.innerHTML = '';
                 data.filterMatches.forEach(match => {
+                const isAvailable = match.isAvailable.replaceAll("_", " ")
                     const li = document.createElement('li');
                     li.textContent = match.name;
+                    li.textContent += ` - ${isAvailable}`
+                    li.textContent += ` - ${match.quantity} Units left in Stock`
                     categoryList.appendChild(li);
+                    categoryList.appendChild(document.createElement('br'))
                 });
             })
             .catch(error => console.error('Error:', error));

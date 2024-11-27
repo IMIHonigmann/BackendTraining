@@ -71,7 +71,7 @@ async function main() {
             category: {connect: {id: category1.id}},
             supplier: {connect: {id: supplier1.id}},
             location: {connect: {id: location1.id}},
-            status: true,
+            isAvailable: "Out_Of_Stock",
             releaseDate: new Date('2023-01-01'),
         },
     });
@@ -82,10 +82,8 @@ async function main() {
             description: 'A smartphone',
             price: 799.00,
             quantity: 150,
-            category: {connect: {id: category1.id}},
             supplier: {connect: {id: supplier2.id}},
             location: {connect: {id: location2.id}},
-            status: true,
             releaseDate: new Date('2023-02-01'),
         },
     });
@@ -99,13 +97,26 @@ async function main() {
             category: {connect: {id: category3.id}},
             supplier: {connect: {id: supplier3.id}},
             location: {connect: {id: location3.id}},
-            status: true,
+            isAvailable: "Available",
             releaseDate: new Date('2023-03-01'),
         },
     });
 
-    console.log(product1, product2, product3);
+    const product4 = await prisma.product.create({
+        data: {
+            name: 'iPad Pro',
+            description: 'A tablet',
+            price: 999.00,
+            quantity: 50,
+            category: {connect: {id: category3.id}},
+            supplier: {connect: {id: supplier3.id}},
+            location: {connect: {id: location1.id}},
+            isAvailable: "Running_Low",
+            releaseDate: new Date('2023-04-01'),
+        },
+    });
 
+    console.log(product1, product2, product3, product4);
 }
 
 main()
