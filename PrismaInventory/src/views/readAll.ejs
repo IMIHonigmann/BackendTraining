@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
 <body>
 <h1>All Products</h1>
 
@@ -38,6 +38,15 @@
                     li.textContent = match.name;
                     li.textContent += ` - ${isAvailable}`
                     li.textContent += ` - ${match.quantity} Units left in Stock`
+                    const category = data.categories.find(category => category.id === match.categoryId)
+                    let categoryString;
+                    if(category) {
+                        categoryString = category.name
+                    }
+                    else {
+                        categoryString = 'Uncategorized'
+                    }
+                        li.textContent += ` - ${categoryString}`
                     categoryList.appendChild(li);
                     categoryList.appendChild(document.createElement('br'))
                 });

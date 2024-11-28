@@ -4,8 +4,6 @@ const prisma = new PrismaClient()
 async function ReadAll(req, res) {
     const products = await prisma.product.findMany({})
     const categories = await prisma.category.findMany()
-
-    console.log(categories)
     res.render('readAll', { products, categories })
 }
 
@@ -13,7 +11,8 @@ let currentFilter: string[] = [];
 async function FilterCategories(req, res) {
     const { filter, isChecked } = req.body
     ChangeFilter(filter, isChecked)
-    const filterMatches = await prisma.product.findMany({
+
+    let filterMatches = await prisma.product.findMany({
         where: {
             category: {
                 name: {
@@ -23,12 +22,16 @@ async function FilterCategories(req, res) {
         }
     });
 
+    if(currentFilter.length == 0) {
+       filterMatches = await prisma.product.findMany()
+    }
+
     // set availability dynamically
-    const lowSupplyThreshhold: number = 9
+    const lowSupplyThreshold: number = 9
     for (const match of filterMatches) {
         const checkedAvailability: quantityState = (() => {
             switch(true) {
-                case match.quantity >= lowSupplyThreshhold:
+                case match.quantity >= lowSupplyThreshold:
                     return "Available"
                 case match.quantity >= 1:
                     return "Running_Low"
@@ -43,7 +46,8 @@ async function FilterCategories(req, res) {
         })
     }
 
-    res.json({ filterMatches });
+    const categories = await prisma.category.findMany()
+    res.json({ filterMatches, categories });
 }
 
 function ChangeFilter(filter, isChecked) {
@@ -69,11 +73,35 @@ async function DisplayProductWithId(req, res) {
     res.json(results)
 }
 
-
+async function ShowCreateCategoryForm(req, res) {
+    const categories = await prisma.category.findMany()
+    // TODO (ADVANCED): Should be automatically filled based on which user/company logs in
+    const suppliers = await prisma.supplier.findMany()
+    const locations = await prisma.location.findMany()
+    res.render('createCategory', { categories, suppliers, locations })
+}
+async function CreateCategory(req, res) {
+    const { newName, newDescription, newPrice, newReleaseDate, newLocation, newSupplier, newCategory } = req.body
+    await prisma.product.create({
+        data: {
+            name: newName,
+            description: newDescription,
+            price: parseFloat(newPrice),
+            releaseDate: new Date(newReleaseDate),
+            location: {
+                connect: { id: parseInt(newLocation) }
+            },
+            supplier: {
+                connect: { id: parseInt(newSupplier) }
+            },
+            category: {
+                connect: { id: parseInt(newCategory) }
+            },
         }
     })
+
+    res.redirect('/nigga')
 }
-// TODO: CreateProduct Form
 // TODO: ChangeProductWithId Dynamic Router + Reassign Category Window
 // TODO: DeleteAllProducts
 // TODO: DeleteProductWithId
@@ -94,5 +122,7 @@ async function DisplayProductWithId(req, res) {
 export default {
     ReadAll,
     FilterCategories,
-    DisplayProductWithId
+    DisplayProductWithId,
+    ShowCreateCategoryForm,
+    CreateCategory
 }
