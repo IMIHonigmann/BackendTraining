@@ -15,8 +15,9 @@ app.get('/', (req, res) => {
 });
 
 app.post('/filterCategories', readController.FilterCategories)
-app.post('/insertNewCategory', readController.CreateCategory)
-app.use('/nigga', productRouter)
+app.post('/insertNewProduct', readController.CreateProduct)
+app.post('/changeProduct', readController.ChangeProduct)
+app.use('/homer', productRouter)
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

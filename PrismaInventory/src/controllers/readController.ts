@@ -73,14 +73,14 @@ async function DisplayProductWithId(req, res) {
     res.json(results)
 }
 
-async function ShowCreateCategoryForm(req, res) {
+async function RenderCreateProduct(req, res) {
     const categories = await prisma.category.findMany()
     // TODO (ADVANCED): Should be automatically filled based on which user/company logs in
     const suppliers = await prisma.supplier.findMany()
     const locations = await prisma.location.findMany()
-    res.render('createCategory', { categories, suppliers, locations })
+    res.render('createProduct', { categories, suppliers, locations })
 }
-async function CreateCategory(req, res) {
+async function CreateProduct(req, res) {
     const { newName, newDescription, newPrice, newReleaseDate, newLocation, newSupplier, newCategory } = req.body
     await prisma.product.create({
         data: {
@@ -100,12 +100,53 @@ async function CreateCategory(req, res) {
         }
     })
 
-    res.redirect('/nigga')
+    res.redirect('/homer')
 }
-// TODO: ChangeProductWithId Dynamic Router + Reassign Category Window
+
+async function RenderChangeProduct(req, res) {
+    const { productId } = req.params;
+
+    const categories = await prisma.category.findMany()
+    // TODO (ADVANCED): Should be automatically filled based on which user/company logs in
+    const suppliers = await prisma.supplier.findMany()
+    const locations = await prisma.location.findMany()
+    const product = await prisma.product.findFirst({
+        where: {
+            id: parseInt(productId)
+        }
+    })
+    res.render('changeProduct', { curProduct: product, categories, suppliers, locations })
+}
+
+async function ChangeProduct(req, res) {
+    const { newName, newDescription, newPrice, newReleaseDate, newLocation, newSupplier, newCategory, productId } = req.body
+    console.log( newName, newDescription, newPrice, newReleaseDate, newLocation, newSupplier, newCategory, productId )
+    await prisma.product.update({
+        where: { id: parseInt(productId) },
+        data: {
+            name: newName,
+            description: newDescription,
+            price: parseFloat(newPrice),
+            location: {
+                connect: { id: parseInt(newLocation) }
+            },
+            supplier: {
+                connect: { id: parseInt(newSupplier) }
+            },
+            category: {
+                connect: { id: parseInt(newCategory) }
+            },
+        }
+    })
+
+    res.redirect('homer')
+}
+
+
 // TODO: DeleteAllProducts
 // TODO: DeleteProductWithId
-// TODO: DeleteCategory -> Make all product category fields that used that category null
+// TODO: DeleteCategory -> Make all product category connections that used that category null
+
 // TODO: Add a category filter that displays all the products without a category
 // TODO: Make a price range filter
 // TODO: Add a product name search/filter
@@ -123,6 +164,8 @@ export default {
     ReadAll,
     FilterCategories,
     DisplayProductWithId,
-    ShowCreateCategoryForm,
-    CreateCategory
+    RenderCreateProduct,
+    CreateProduct,
+    RenderChangeProduct,
+    ChangeProduct
 }
