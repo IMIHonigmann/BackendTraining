@@ -25,8 +25,8 @@ model Product {
   description String
   price       Float
   quantity    Int           @default(0)
-  categoryId  Int?
-  category    Category?     @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  category    Category      @relation(fields: [categoryId], references: [id])
   supplierId  Int
   supplier    Supplier      @relation(fields: [supplierId], references: [id])
   locationId  Int
