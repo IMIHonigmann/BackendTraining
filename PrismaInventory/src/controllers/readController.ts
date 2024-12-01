@@ -142,13 +142,62 @@ async function ChangeProduct(req, res) {
     res.redirect('homer')
 }
 
+async function DeleteAllProducts(req, res) {
+    const allProducts = await prisma.product.findMany({})
+    if(allProducts.length === 0) {
+        await prisma.product.deleteMany({})
+    }
+    else {
+        console.log('No products found')
+    }
+}
 
-// TODO: DeleteAllProducts
-// TODO: DeleteProductWithId
-// TODO: DeleteCategory -> Make all product category connections that used that category null
+async function DeleteProductWithId(req, res) {
+    const { productId } = req.params
+    const elementToCheckIfExists = await prisma.product.findFirst({
+        where: { id: parseInt(productId) }
+    })
+    if(elementToCheckIfExists) {
+        await prisma.product.delete({
+            where: { id: parseInt(productId) }
+        })
+    } else {
+        console.log(`Entry ${productId} does not exist`)
+    }
+}
 
-// TODO: Add a category filter that displays all the products without a category
+async function DeleteCategory(req, res) {
+    const { categoryIdToDelete } = req.params
+    const toDeleteCategoryId = parseInt(categoryIdToDelete)
+    const category = await prisma.category.findUnique({
+        where: {
+            id: toDeleteCategoryId
+        }
+    })
+    const uncategorized = await prisma.category.findFirst({
+        where: {
+            name: 'Uncategorized'
+        }
+    })
+    if(category && toDeleteCategoryId !== uncategorized.id) {
+        await prisma.product.updateMany({
+            where: { categoryId: toDeleteCategoryId },
+            data: {
+                categoryId: uncategorized.id
+            }
+        })
+        await prisma.category.delete({
+            where: { id: toDeleteCategoryId }
+        })
+    } else {
+        const message: string = `Category ${categoryIdToDelete} does not exist`
+        res.send(message)
+        console.log(message)
+    }
+}
 // TODO: Make a price range filter
+
+
 // TODO: Add a product name search/filter
 // TODO: Use ExpressValidator for the name search
 
@@ -167,5 +216,8 @@ export default {
     RenderCreateProduct,
     CreateProduct,
     RenderChangeProduct,
-    ChangeProduct
+    ChangeProduct,
+    DeleteAllProducts,
+    DeleteProductWithId,
+    DeleteCategory,
 }

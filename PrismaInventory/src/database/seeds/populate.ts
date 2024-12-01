@@ -44,6 +44,13 @@ async function main() {
         },
     });
 
+    const categoryU = await prisma.category.create({
+        data : {
+            name: 'Uncategorized',
+            description: 'Placeholder Category for sellers'
+        }
+    })
+
     const location1 = await prisma.location.create({
         data: {
             name: 'Warehouse 1',
@@ -82,6 +89,7 @@ async function main() {
             description: 'A smartphone',
             price: 799.00,
             quantity: 150,
+            category: {connect: {id: categoryU.id}},
             supplier: {connect: {id: supplier2.id}},
             location: {connect: {id: location2.id}},
             releaseDate: new Date('2023-02-01'),
