@@ -1,0 +1,35 @@
+{
+  "name": "prismausage",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --watch",
+    "killall": "powershell -Command \"Get-Process node | ForEach-Object { $_.Kill() }\" && tsx watch src/app.ts",
+    "dev": "tsx watch src/app.ts",
+    "populate": "tsx src/database/seeds/populate.ts --watch"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@types/node": "^22.9.1",
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "pg": "^8.13.1",
+    "prisma": "^5.22.0"
+  }
+}
