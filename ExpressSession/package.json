@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc --watch",
-    "killall": "powershell -Command \"Get-Process node | ForEach-Object { $_.Kill() }\" && tsx watch src/app.ts",
-    "dev": "tsx watch src/app.ts",
+    "killall": "powershell -Command \"Get-Process node | ForEach-Object { $_.Kill() }\" && tsx watch src/app.js",
+    "devt": "tsx watch src/app.ts",
+    "devj": "nodemon src/app.js",
     "populate": "tsx src/database/seeds/populate.ts --watch"
   },
   "devDependencies": {
@@ -25,10 +26,12 @@
     "@prisma/client": "^5.22.0",
     "@types/node": "^22.9.1",
     "connect-pg-simple": "^10.0.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "pg": "^8.13.1",
     "prisma": "^5.22.0"
   }
