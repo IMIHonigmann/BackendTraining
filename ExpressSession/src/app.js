@@ -10,6 +10,7 @@ import pool from './config/database.js';
 import passport from 'passport';
 import indexRouter from './routes/index.js';
 import 'dotenv/config';
+import './config/passport.js';  
 
 const app = express();
 const prisma = new PrismaClient();
@@ -43,7 +44,6 @@ app.use(passport.session());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-import './config/passport.js';
 
 // -------- ROUTES -----------
 app.use('/', indexRouter);
