@@ -1,6 +1,6 @@
 import passport from "passport";
 import express from "express";
-import { genPassword } from "../lib/passwordUtils.js";
+import { genPasswordSafe } from "../lib/passwordUtils.js";
 import { PrismaClient } from "@prisma/client";
 import { checkAuthentication } from "../middleware/authenticator.js";
 
@@ -31,6 +31,15 @@ router.get("/login", (req, res, next) => {
   res.render("login", { user: req.user });
 });
 
+router.get("/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+  });
+  res.send("You have been logged out! Have a nice day");
+});
+
 /* GET register page. */
 router.get("/register", function (req, res, next) {
   res.render("register");
@@ -46,15 +55,13 @@ router.post("/login", (req, res, next) => {
 
 /* POST register page. */
 router.post("/register", async (req, res, next) => {
-  const saltHash = genPassword(req.body.passwort);
-  const salt = saltHash.salt;
-  const hash = saltHash.hash;
+  const encryptedPassword = await genPasswordSafe(req.body.passwort);
 
   await prisma.user.create({
     data: {
       username: req.body.benutzername,
-      hash: hash,
-      salt: salt,
+      salt: encryptedPassword.salt.toString(),
+      hash: encryptedPassword.hashedPassword,
     },
   });
 

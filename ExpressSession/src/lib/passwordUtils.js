@@ -1,15 +1,14 @@
-import crypto from 'crypto'
+import bcrypt from "bcryptjs";
 
-export function genPassword(password) {
-    const salt = crypto.randomBytes(32).toString('hex')
-    const genHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
-
+export async function genPasswordSafe(password) {
+  const saltRounds = 11; // 10 Industry Standard, 11 still good, 12 >250ms too high
+  try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     return {
-        salt: salt,
-        hash: genHash
-    }
-}
-export function validPassword(password, hash, salt) {
-    const hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
-    return hash === hashVerify
+      salt: saltRounds,
+      hashedPassword,
+    };
+  } catch (err) {
+    throw err;
+  }
 }
