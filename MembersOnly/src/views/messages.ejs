@@ -1,0 +1,15 @@
+<html lang="en">
+    <body>
+        <ul>
+            <% locals.posts.forEach(post => {%>
+            <li>
+                <%= post.title %>
+                <br>
+                <%= post.author.membership %>
+                (Level: <%= Object.values(Tier).indexOf(post.author.membership) + 1 %>)
+            </li>
+            <br>
+            <% }) %>
+        </ul>
+    </body>
+</html>

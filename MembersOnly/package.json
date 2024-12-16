@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "main": "src/app.ts",
   "scripts": {
-    "dev": "ts-node src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "killall": "powershell -Command \"Get-Process node | ForEach-Object { $_.Kill() }\" && tsx watch src/app.ts",
+    "dev": "tsx watch src/app.ts",
+    "populate": "tsx src/database/seeds/populate.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.1",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
+    "argon2": "^0.41.1",
+    "ejs": "^3.1.10",
     "express": "^4.17.1",
     "prisma": "^6.0.1",
     "tsx": "^4.19.2"
