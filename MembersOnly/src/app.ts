@@ -28,6 +28,9 @@ app.get('/users/register', async (req, res) => {
 app.get('/home',
     async (req, res) => {
         try {
+            const level = 1
+            const tiers = Object.values(Tier);
+            const allowedTiers = tiers.slice(0, level + 1);
             const posts = await prisma.post.findMany({
                 include: {
                     author: {
@@ -36,9 +39,16 @@ app.get('/home',
                             membership: true
                         }
                     }
+                },
+                where: {
+                    author: {
+                        membership: {
+                            in: allowedTiers
+                        }
+                    }
                 }
             })
-            res.render('messages', { posts, Tier: Tier })
+            res.render('messages', { posts, Tier: Tier, level })
 
         } catch (error) {
             console.error('Posts could not be fetched', error)
@@ -93,17 +103,45 @@ app.post('/users/register', async (req: Req<{}, {}, RegisterRequestBody>, res) =
     res.redirect('/users/login');
 });
 
+app.get('/posts/addPost', async (req, res) => {
+    res.render('sendMessage', {})
+})
+
+app.post('/posts/addPost', async (req, res) => {
+    const { title, content } = req.body
+
+    // fetch an arbitrary user for now
+    const arbitraryEmail = 'ddd'
+    const arbitraryUser = await prisma.user.findUnique({
+        where: {
+            email: arbitraryEmail
+        }
+    })
+
+    if (!arbitraryUser) {
+        console.error(arbitraryEmail, 'does not exist in database')
+        return
+    }
+
+    await prisma.post.create({
+        data: {
+            title: title,
+            content: content,
+            author: {
+                connect: { id: arbitraryUser.id }
+            }
+        }
+    })
+
+    console.log('Post successfully created')
+})
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// TODO finish login ejs
-// TODO Create register ejs
-// TODO Create message posting form
-// TODO filter objects based on arbitrary tier (only show messages with current tier or lower) and make it serverside
-// TODO delete all database users and posts
 // TODO implement passport-local strategy
 // TODO if login works: protect the posting route and rewrite the filter dependency to use passport
 // TODO Add an admin field that displays delete buttons

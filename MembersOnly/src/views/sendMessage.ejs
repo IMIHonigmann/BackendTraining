@@ -1,0 +1,17 @@
+<html>
+    <body>
+        <form action="/posts/addPost" method="post">
+            <label for="title"> Title </label>
+            <input type="text" id="title" name="title"/>
+            <br>
+            <label for="content"> Content </label>
+            <input type="text" id="content" name="content"/>
+            <br>
+            <!-- how do you get the user now? -->
+            <!-- idea for now: fetch an arbitrary user in node.js and pass him into the connect of the post -->
+            <button type="submit">
+                Post
+            </button>
+        </form>
+    </body>
+</html>
