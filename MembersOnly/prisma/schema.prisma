@@ -11,6 +11,7 @@ model User {
   password   String
   email      String   @unique
   membership Tier     @default(gooner)
+  isAdmin    Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

@@ -46,17 +46,9 @@ app.get('/home', authenticateJWT,
                 where: { email: req.user.email }
             })
 
-            // BRO DIE PRISMA DB IST LEER
-            // CONSIDER PUTTING NEW RECORDS IN THE PRISMA DB OR TRANSFER THE AUTHENTICATION TO PRISMA INSTEAD OF PG
-            console.log(signedInUser)
-
-            // const membership = signedInUser.membership
-            // console.log(membership)
-
-            const level = 3
-
             const tiers = Object.values(Tier);
-            const allowedTiers = tiers.slice(0, level + 1);
+            const lvl = tiers.indexOf(signedInUser.membership)
+            const allowedTiers = tiers.slice(0, lvl + 1);
             const posts = await prisma.post.findMany({
                 include: {
                     author: {
@@ -75,7 +67,7 @@ app.get('/home', authenticateJWT,
                 }
             })
             // res.render('messages', { posts, Tier: Tier, level })
-            res.json({ posts, Tier, level })
+            res.json({ posts, Tier, level: lvl + 1 })
 
 
         } catch (error) {
@@ -88,19 +80,18 @@ app.get('/posts/addPost', authenticateJWT, async (req, res) => {
     res.render('sendMessage', {})
 })
 
-app.post('/posts/addPost', async (req, res) => {
+app.post('/posts/addPost', authenticateJWT, async (req, res) => {
     const { title, content } = req.body
 
     // fetch an arbitrary user for now
-    const arbitraryEmail = 'ddd'
     const arbitraryUser = await prisma.user.findUnique({
         where: {
-            email: arbitraryEmail
+            email: req.user.email
         }
     })
 
     if (!arbitraryUser) {
-        console.error(arbitraryEmail, 'does not exist in database')
+        console.error(req.user.email, 'does not exist in database')
         return
     }
 
@@ -117,15 +108,50 @@ app.post('/posts/addPost', async (req, res) => {
     console.log('Post successfully created')
 })
 
+app.get('/posts/delete/:postId', authenticateJWT,
+    async (req, res) => {
+        const parsedId = parseInt(req.params.postId)
+        if (isNaN(parsedId)) {
+            res.send(`${req.params.postId} is not a number`)
+            return;
+        }
+        try {
+            const post = await prisma.post.findUnique({
+                where: {
+                    id: parsedId
+                }
+            });
+
+            if (!post) {
+                return res.status(404).json({ error: `Post with ID ${parsedId} not found` });
+            }
+
+            const deletor = await prisma.user.findUnique({
+                where: { email: req.user.email }
+            })
+            if (!deletor.isAdmin && deletor.id !== post.authorId) {
+                return res.status(409).json({ error: `You are not authorized to delete` })
+            }
+
+            await prisma.post.delete({
+                where: {
+                    id: parsedId
+                }
+            });
+
+            res.status(200).json({ message: 'Post deleted successfully' });
+
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            res.status(500).json({ error: 'Internal server error while deleting post' });
+        }
+    })
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// TODO implement passport-local strategy
-// TODO if login works: protect the posting route and rewrite the filter dependency to use passport
-// TODO Add an admin field that displays delete buttons
-// TODO Create the Delete routes for the admin
 // TODO Validate the register/message posting input with express validator
 // TODO (BONUS) implement passport-google-oauth2

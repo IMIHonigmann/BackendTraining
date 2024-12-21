@@ -1,0 +1,59 @@
+<html>
+  <body>
+    <form
+      id="postForm"
+      action="http://localhost:3000/posts/addPost"
+      method="post"
+    >
+      <label for="title"> Title </label>
+      <input type="text" id="title" name="title" />
+      <br />
+      <label for="content"> Content </label>
+      <input type="text" id="content" name="content" />
+      <br />
+      <!-- how do you get the user now? -->
+      <!-- idea for now: fetch an arbitrary user in node.js and pass him into the connect of the post -->
+      <button type="submit">Post</button>
+    </form>
+    <script>
+      document
+        .getElementById("postForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const jwtToken = localStorage.getItem("jwtToken");
+          if (!jwtToken) {
+            alert("You are not authenticated, Please log in first!");
+            return;
+          }
+
+          const formData = {
+            title: document.getElementById("title").value,
+            content: document.getElementById("content").value,
+          };
+
+          try {
+            const response = await fetch(
+              "http://localhost:3000/posts/addPost",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${jwtToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+              }
+            );
+
+            if (response.ok) {
+              const result = await response.json();
+              console.log("Success:", result);
+            } else {
+              console.error("Error:", response.statusText);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+          }
+        });
+    </script>
+  </body>
+</html>
