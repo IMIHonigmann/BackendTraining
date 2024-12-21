@@ -1,34 +1,60 @@
 import express from 'express';
-import { Request as Req, Response as Res } from 'express'
+import { Request as Req } from 'express';
 import { PrismaClient, Tier } from '@prisma/client';
-import argon2 from 'argon2'
+import argon2 from 'argon2';
 import path from 'path';
-const prisma = new PrismaClient()
+import cors from 'cors';
+// Add new imports
+import { initializePassport } from './config/passport';
+import { setAuthRoutes } from './routes/auth.routes';
+import { authenticateJWT } from './middlewares/auth.middleware';
+
+const prisma = new PrismaClient();
 const app = express();
 
+app.use(cors({
+    origin: '*', // In production, replace with your specific domain
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Existing middleware
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Add new middleware
+initializePassport();
+
+// Add new routes
+setAuthRoutes(app);
 // Define your routes here
 app.get('/', async (req, res) => {
     const matches = await prisma.user.findMany()
     res.send(matches);
 });
 
-app.get('/users/login', async (req, res) => {
-    res.render('login', {})
+app.get('/homeEndpoint', authenticateJWT, async (req, res, next) => {
+    res.json({ MESAG: 'you made it tough motherfucker' })
 })
 
-app.get('/users/register', async (req, res) => {
-    res.render('register', {})
-})
-
-app.get('/home',
+app.get('/home', authenticateJWT,
     async (req, res) => {
         try {
-            const level = 1
+            const signedInUser = await prisma.user.findUnique({
+                where: { email: req.user.email }
+            })
+
+            // BRO DIE PRISMA DB IST LEER
+            // CONSIDER PUTTING NEW RECORDS IN THE PRISMA DB OR TRANSFER THE AUTHENTICATION TO PRISMA INSTEAD OF PG
+            console.log(signedInUser)
+
+            // const membership = signedInUser.membership
+            // console.log(membership)
+
+            const level = 3
+
             const tiers = Object.values(Tier);
             const allowedTiers = tiers.slice(0, level + 1);
             const posts = await prisma.post.findMany({
@@ -48,7 +74,9 @@ app.get('/home',
                     }
                 }
             })
-            res.render('messages', { posts, Tier: Tier, level })
+            // res.render('messages', { posts, Tier: Tier, level })
+            res.json({ posts, Tier, level })
+
 
         } catch (error) {
             console.error('Posts could not be fetched', error)
@@ -56,54 +84,7 @@ app.get('/home',
         }
     })
 
-app.post('/users/login', async (req, res) => {
-    try {
-        const { email, password } = req.body
-        const match = await prisma.user.findUnique({
-            where: {
-                email: email
-            }
-        })
-
-        if (!match) {
-            res.status(404).send(`${email}: User has not been found`)
-            return
-        }
-        if (await argon2.verify(match.password, password)) {
-            res.status(200).send('Authentication successful')
-        } else {
-            res.status(401).send('Wrong Password')
-        }
-    } catch (err) {
-        console.error(err)
-    }
-})
-
-interface RegisterRequestBody {
-    username: string;
-    email: string;
-    password: string;
-}
-
-app.post('/users/register', async (req: Req<{}, {}, RegisterRequestBody>, res) => {
-    try {
-        const { username, email, password } = req.body;
-        const hash = await argon2.hash(password);
-        await prisma.user.create({
-            data: {
-                name: username,
-                password: hash,
-                email: email
-            }
-        });
-    } catch (err) {
-        console.error(err);
-    }
-
-    res.redirect('/users/login');
-});
-
-app.get('/posts/addPost', async (req, res) => {
+app.get('/posts/addPost', authenticateJWT, async (req, res) => {
     res.render('sendMessage', {})
 })
 
