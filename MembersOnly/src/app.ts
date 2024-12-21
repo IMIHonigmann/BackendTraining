@@ -81,7 +81,7 @@ app.get('/posts/addPost', authenticateJWT, async (req, res) => {
 })
 
 app.post('/posts/addPost', authenticateJWT, async (req, res) => {
-    const { title, content } = req.body
+    const { title, content, clubhouseId } = req.body
 
     // fetch an arbitrary user for now
     const arbitraryUser = await prisma.user.findUnique({
@@ -89,6 +89,8 @@ app.post('/posts/addPost', authenticateJWT, async (req, res) => {
             email: req.user.email
         }
     })
+
+    // consider making clubhouse name unique to avoid too many database calls
 
     if (!arbitraryUser) {
         console.error(req.user.email, 'does not exist in database')
@@ -101,12 +103,63 @@ app.post('/posts/addPost', authenticateJWT, async (req, res) => {
             content: content,
             author: {
                 connect: { id: arbitraryUser.id }
+            },
+            clubhouse: {
+                connect: { id: parseInt(clubhouseId) }
             }
         }
     })
 
     console.log('Post successfully created')
 })
+
+app.post('/clubhouses/createClubHouse', authenticateJWT, async (req, res) => {
+    const { title, passcode } = req.body
+
+    // fetch an arbitrary user for now
+    const hashedPassword = await argon2.hash(passcode)
+
+    await prisma.clubhouse.create({
+        data: {
+            title: title,
+            passcode: hashedPassword
+        }
+    })
+
+    res.status(200).send('Clubhouse successfully created')
+    console.log('Clubhouse successfully created')
+})
+
+app.get('/clubhouses/:clubhouseId', authenticateJWT,
+    async (req, res, next) => {
+        const { clubhouseId } = req.params;
+        const { pagePW } = req.body;
+        const clubHouse = await prisma.clubhouse.findUnique({
+            where: {
+                id: parseInt(clubhouseId)
+            }
+        })
+        const requestedPassword = clubHouse.passcode;
+        if (await argon2.verify(requestedPassword, pagePW)) {
+            next();
+        } else {
+            res.status(409).send('Incorrect Password')
+            return;
+        }
+    },
+    async (req, res) => {
+        const { clubhouseId } = req.params;
+        const clubHouse = await prisma.clubhouse.findUnique({
+            where: { id: parseInt(clubhouseId) }
+        })
+        const posts = await prisma.post.findMany({
+            where: { clubhouseId: parseInt(clubhouseId) }
+        })
+
+        res.status(200).json({ message: 'You made it cool guy', clubHouseName: clubHouse.title, posts })
+
+    }
+)
 
 app.get('/posts/delete/:postId', authenticateJWT,
     async (req, res) => {
@@ -146,6 +199,8 @@ app.get('/posts/delete/:postId', authenticateJWT,
             res.status(500).json({ error: 'Internal server error while deleting post' });
         }
     })
+
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
