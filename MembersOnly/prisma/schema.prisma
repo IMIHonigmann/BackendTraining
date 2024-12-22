@@ -16,6 +16,8 @@ model User {
   updatedAt  DateTime @updatedAt
 
   Post Post[]
+
+  ClubhouseUser ClubhouseUser[]
 }
 
 model Post {
@@ -38,6 +40,18 @@ model Clubhouse {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Post      Post[]
+
+  ClubhouseUser ClubhouseUser[]
+}
+
+model ClubhouseUser {
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  clubhouseId Int
+  clubhouse   Clubhouse @relation(fields: [clubhouseId], references: [id])
+  joinedAt    DateTime  @default(now())
+
+  @@id([userId, clubhouseId])
 }
 
 datasource db {

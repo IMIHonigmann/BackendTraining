@@ -133,19 +133,43 @@ app.post('/clubhouses/createClubHouse', authenticateJWT, async (req, res) => {
 app.get('/clubhouses/:clubhouseId', authenticateJWT,
     async (req, res, next) => {
         const { clubhouseId } = req.params;
-        const { pagePW } = req.body;
+        const { pagePW, rememberMe } = req.body;
         const clubHouse = await prisma.clubhouse.findUnique({
             where: {
                 id: parseInt(clubhouseId)
             }
         })
         const requestedPassword = clubHouse.passcode;
-        if (await argon2.verify(requestedPassword, pagePW)) {
-            next();
+
+        const existingAccess = await prisma.clubhouseUser.findUnique({
+            where: {
+                userId_clubhouseId: {
+                    userId: req.user.id,
+                    clubhouseId: parseInt(clubhouseId)
+                }
+            }
+        })
+        if (existingAccess) {
+            console.log('User is already authenticated, redirecting...');
+            return next();
+        }
+        else if (await argon2.verify(requestedPassword, pagePW)) {
+            console.log('User entered the right password');
+            if (rememberMe) {
+                console.log('User will be remembered on next visit')
+                await prisma.clubhouseUser.create({
+                    data: {
+                        userId: req.user.id,
+                        clubhouseId: parseInt(clubhouseId)
+                    }
+                })
+            }
+            return next();
         } else {
             res.status(409).send('Incorrect Password')
             return;
         }
+
     },
     async (req, res) => {
         const { clubhouseId } = req.params;
@@ -208,5 +232,6 @@ app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
+// TODO Hide username if logged in user is not an admin
 // TODO Validate the register/message posting input with express validator
 // TODO (BONUS) implement passport-google-oauth2
