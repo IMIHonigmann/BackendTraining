@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 export default class AuthController {
     constructor() { }
@@ -20,7 +22,10 @@ export default class AuthController {
 
             // Generate JWT
             const token = jwt.sign(
-                { id: user.id, email: user.email },
+                {
+                    id: user.id,
+                    email: user.email,
+                },
                 process.env.JWT_SECRET || 'default_jwt_secret',
                 { expiresIn: '24h' }
             );
@@ -52,9 +57,18 @@ export default class AuthController {
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
 
+            const allowedClubhouses = (await prisma.clubhouseUser.findMany({
+                where: { userId: user.id },
+                select: { clubhouseId: true }
+            })).map(club => club.clubhouseId)
+
             // Generate JWT
             const token = jwt.sign(
-                { id: user.id, email: user.email },
+                {
+                    id: user.id,
+                    email: user.email,
+                    accessibleClubhouses: allowedClubhouses
+                },
                 process.env.JWT_SECRET || 'default_jwt_secret',
                 { expiresIn: '24h' }
             );

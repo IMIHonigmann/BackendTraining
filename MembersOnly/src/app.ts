@@ -8,6 +8,7 @@ import cors from 'cors';
 import { initializePassport } from './config/passport';
 import { setAuthRoutes } from './routes/auth.routes';
 import { authenticateJWT } from './middlewares/auth.middleware';
+import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -133,13 +134,25 @@ app.post('/clubhouses/createClubHouse', authenticateJWT, async (req, res) => {
 app.get('/clubhouses/:clubhouseId', authenticateJWT,
     async (req, res, next) => {
         const { clubhouseId } = req.params;
-        const { pagePW, rememberMe } = req.body;
-        const clubHouse = await prisma.clubhouse.findUnique({
-            where: {
-                id: parseInt(clubhouseId)
-            }
-        })
-        const requestedPassword = clubHouse.passcode;
+
+        const token = req.headers.authorization?.split(' ')[1]; // Remove 'Bearer '
+        let decoded = jwt.decode(token);
+        if (typeof decoded === 'string') {
+            decoded = JSON.parse(decoded);
+        } else {
+            decoded = decoded;
+        }
+
+        const isClubhouseSignedInJWT = decoded.accessibleClubhouses.includes(parseInt(clubhouseId))
+        if (isClubhouseSignedInJWT) {
+            console.log('JWT successfully authenticated, redirecting...')
+            return next();
+        }
+
+        console.log('JWT does not contain the clubhouse, checking redis...')
+        // TODO: Add redis check here
+
+        console.log('Redis does not contain the clubhouse, checking DB...')
 
         const existingAccess = await prisma.clubhouseUser.findUnique({
             where: {
@@ -150,10 +163,19 @@ app.get('/clubhouses/:clubhouseId', authenticateJWT,
             }
         })
         if (existingAccess) {
-            console.log('User is already authenticated, redirecting...');
+            console.log('DB lookup done, redirecting...');
             return next();
         }
-        else if (await argon2.verify(requestedPassword, pagePW)) {
+
+        console.log(`User is not authorized to view this clubhouse, password will be checked...`)
+        const { pagePW, rememberMe } = req.body;
+        const clubHouse = await prisma.clubhouse.findUnique({
+            where: {
+                id: parseInt(clubhouseId)
+            }
+        })
+        const requestedPassword = clubHouse.passcode;
+        if (await argon2.verify(requestedPassword, pagePW)) {
             console.log('User entered the right password');
             if (rememberMe) {
                 console.log('User will be remembered on next visit')
