@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
 import { PrismaClient } from '@prisma/client';
+import '../types/editedTypes'
+
 const prisma = new PrismaClient();
 
 export default class AuthController {
@@ -21,11 +23,14 @@ export default class AuthController {
             const user = await User.createUser(email, password);
 
             // Generate JWT
+            const payload: JWTPL = {
+                id: user.id,
+                email: user.email,
+                accessibleClubhouses: []
+            };
+
             const token = jwt.sign(
-                {
-                    id: user.id,
-                    email: user.email,
-                },
+                payload,
                 process.env.JWT_SECRET || 'default_jwt_secret',
                 { expiresIn: '24h' }
             );
@@ -63,12 +68,14 @@ export default class AuthController {
             })).map(club => club.clubhouseId)
 
             // Generate JWT
+            const payload: JWTPL = {
+                id: user.id,
+                email: user.email,
+                accessibleClubhouses: allowedClubhouses
+            }
+
             const token = jwt.sign(
-                {
-                    id: user.id,
-                    email: user.email,
-                    accessibleClubhouses: allowedClubhouses
-                },
+                payload,
                 process.env.JWT_SECRET || 'default_jwt_secret',
                 { expiresIn: '24h' }
             );
