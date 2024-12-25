@@ -142,36 +142,53 @@ const init = async () => {
         console.log('Clubhouse successfully created')
     })
 
+    function binarySearch(arr, target) {
+        let left = 0;
+        let right = arr.length - 1;
+
+        while (left <= right) {
+            let mid = left + Math.floor((right - left) / 2);
+
+            // Check if target is present at mid
+            if (arr[mid] === target) {
+                return mid;
+            }
+            // If target is greater, ignore left half
+            else if (arr[mid] < target) {
+                left = mid + 1;
+            }
+            // If target is smaller, ignore right half
+            else {
+                right = mid - 1;
+            }
+        }
+
+        // If we reach here, the element was not present
+        return -1;
+    }
+
     app.get('/clubhouses/:clubhouseId', authenticateJWT,
         async (req, res, next) => {
             const { clubhouseId } = req.params;
 
+            const isMember = await redisClient.sIsMember(`clubhouse:${clubhouseId}`, req.user!.id.toString())
+            if (isMember) {
+                console.log('Check 1/3 successful', 'Cache Hit: redirecting...')
+                return next();
+            }
+            console.log('Check 1/3 failed', 'Cache Miss: Redis does not contain the user in the clubhouse, checking JWT...')
+
             const token = req.headers.authorization!.split(' ')[1]; // Remove 'Bearer '
             const decoded = jwt.decode(token) as JWTPL;
+            const isClubhouseSignedInJWT = binarySearch(decoded!.accessibleClubhouses, parseInt(clubhouseId)) > -1
 
-            // TODO: Sort the accessibleClubhouses on logging in inside the jwt
-            // and then use binary search to find it here
-
-
-
-            const isClubhouseSignedInJWT = decoded!.accessibleClubhouses.includes(parseInt(clubhouseId))
             if (isClubhouseSignedInJWT) {
-                console.log('JWT successfully authenticated, redirecting...')
+                console.log('Check 2/3 successful', 'JWT successfully authenticated, redirecting...')
+                await redisClient.sAdd(`clubhouse:${clubhouseId}`, req.user!.id.toString())
                 return next();
             }
 
-            console.log('JWT does not contain the clubhouse, checking redis...')
-            const clubHouseUsers = await redisClient.get(`clubhouse:${clubhouseId}`)
-            if (clubHouseUsers) {
-                const clubHouseUsersArray = JSON.parse(clubHouseUsers)
-                if (clubHouseUsersArray.includes(req.user!.id)) {
-                    console.log('Cache Hit: redirecting...')
-                    return next();
-                }
-            }
-
-            console.log('Cache Miss: Redis does not contain the user in the clubhouse, checking DB...')
-
+            console.log('Check 2/3 failed', 'JWT does not contain the clubhouse, checking DB...')
             const existingAccess = await prisma.clubhouseUser.findUnique({
                 where: {
                     userId_clubhouseId: {
@@ -181,22 +198,11 @@ const init = async () => {
                 }
             })
             if (existingAccess) {
-                console.log('DB lookup done, redirecting...');
-
-                const allowedUsers = await redisClient.get(`clubhouse:${clubhouseId}`)
-                let allowedUsersArray: number[] = []
-
+                console.log('Check 3/3 successful', 'DB lookup done, redirecting...');
                 try {
-                    allowedUsersArray = allowedUsers ? JSON.parse(allowedUsers) : []
-
-                    console.log(allowedUsersArray)
-                    if (!allowedUsersArray.includes(req.user!.id)) {
-                        allowedUsersArray.push(req.user!.id)
-                        await redisClient.setEx(
-                            `clubhouse:${clubhouseId}`,
-                            3600,
-                            JSON.stringify(allowedUsersArray)
-                        )
+                    const isMember = await redisClient.sIsMember(`clubhouse:${clubhouseId}`, req.user!.id.toString())
+                    if (!isMember) {
+                        await redisClient.sAdd(`clubhouse:${clubhouseId}`, req.user!.id.toString())
                     }
                 } catch (error) {
                     console.error('Error processing users:', error)
@@ -205,7 +211,7 @@ const init = async () => {
                 return next();
             }
 
-            console.log(`User is not authorized to view this clubhouse, password will be checked...`)
+            console.log(`All checks failed! User is not authorized to view this clubhouse, password will be checked...`)
             const { pagePW, rememberMe } = req.body;
             const clubHouse = await prisma.clubhouse.findUnique({
                 where: { id: parseInt(clubhouseId) }
@@ -223,7 +229,8 @@ const init = async () => {
             if (await argon2.verify(requestedPassword, pagePW)) {
                 console.log('User entered the right password');
                 if (rememberMe) {
-                    console.log('User will be remembered on next visit')
+                    console.log('User will be cached and remembered on next visit')
+                    await redisClient.sAdd(`clubhouse:${clubhouseId}`, req.user!.id.toString())
                     await prisma.clubhouseUser.create({
                         data: {
                             userId: req.user!.id,

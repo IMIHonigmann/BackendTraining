@@ -65,7 +65,7 @@ export default class AuthController {
             const allowedClubhouses = (await prisma.clubhouseUser.findMany({
                 where: { userId: user.id },
                 select: { clubhouseId: true }
-            })).map(club => club.clubhouseId)
+            })).map(club => club.clubhouseId).sort()
 
             // Generate JWT
             const payload: JWTPL = {
