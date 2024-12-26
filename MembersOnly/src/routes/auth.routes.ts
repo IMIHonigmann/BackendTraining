@@ -15,7 +15,9 @@ export function setAuthRoutes(app: Application) {
         res.render('register', {})
     })
 
+    // @ts-ignore
     app.post('/users/register', authController.register.bind(authController));
+    // @ts-ignore
     app.post('/users/login', authController.login.bind(authController));
 
     // Protected route

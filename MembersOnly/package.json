@@ -4,10 +4,13 @@
   "main": "src/app.ts",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/app.js",
-    "killall": "powershell -Command \"Get-Process node | ForEach-Object { $_.Kill() }\" && tsx watch src/app.ts",
-    "dev": "tsx watch src/app.ts",
-    "populate": "tsx src/database/seeds/populate.ts"
+    "start": "node dist/server.js",
+    "killall": "powershell -Command \"Get-Process node | ForEach-Object { $_.Kill() }\" && tsx watch src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "populate": "tsx src/database/seeds/populate.ts",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:auth": "jest authentication.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
@@ -38,6 +41,9 @@
     "tsx": "^4.19.2"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.0.0",
     "typescript": "^4.9.5"
   }

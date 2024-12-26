@@ -24,6 +24,7 @@ export const initializePassport = () => {
     }, async (jwtPayload, done) => {
         try {
             const user = await User.findById(jwtPayload.id);
+            console.log(user)
             if (user) {
                 return done(null, user);
             }
