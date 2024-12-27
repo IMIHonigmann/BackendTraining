@@ -1,11 +1,8 @@
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
-import express from "express";
 import init from '../app';
 import { redisClient } from '../redis';
-import { resolve } from 'path';
 const prisma = new PrismaClient();
-const app = express();
 
 
 describe('Authentication Tests', () => {
@@ -14,17 +11,30 @@ describe('Authentication Tests', () => {
 
     beforeAll(async () => {
         app = await init();
+        await request(app)
+            .post('/users/register')
+            .send({
+                email: 'test@auth.com',
+                password: 'hashedPassword123!'
+            });
         const response = await request(app)
             .post('/users/login')
             .send({
-                email: 'smegma@based.com',
-                password: 'hashedPassword123'
+                email: 'test@auth.com',
+                password: 'hashedPassword123!'
             });
         authToken = response.body.token
         console.log('Auth Token:', response.body);
     })
 
     afterAll(async () => {
+        await prisma.user.deleteMany({
+            where: {
+                email: {
+                    contains: 'test@auth.'
+                }
+            }
+        })
         await prisma.$disconnect();
         await redisClient.quit();
     });
@@ -43,5 +53,4 @@ describe('Authentication Tests', () => {
             console.log('Response Body', response.body)
         })
     })
-
 })

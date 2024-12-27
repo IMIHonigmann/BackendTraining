@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { body } from 'express-validator'
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
 import { PrismaClient } from '@prisma/client';

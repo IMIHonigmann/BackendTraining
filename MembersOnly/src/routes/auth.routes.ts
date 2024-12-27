@@ -1,7 +1,7 @@
 import { Router, Application } from 'express';
 import AuthController from '../controllers/auth.controller';
 import { authenticateJWT } from '../middlewares/auth.middleware';
-import passport from 'passport'
+import { registerValidationRules, validateRegister } from '../utils/formValidators';
 
 const router = Router();
 const authController = new AuthController();
@@ -16,7 +16,7 @@ export function setAuthRoutes(app: Application) {
     })
 
     // @ts-ignore
-    app.post('/users/register', authController.register.bind(authController));
+    app.post('/users/register', registerValidationRules, validateRegister, authController.register.bind(authController));
     // @ts-ignore
     app.post('/users/login', authController.login.bind(authController));
 
