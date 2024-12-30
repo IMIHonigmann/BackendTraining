@@ -1,30 +1,38 @@
-import express from "npm:express@5.0.1";
-import Prisma from "@prisma/client"
+import express from 'express';
+import Prisma from '@prisma/client';
+import * as path from 'jsr:@std/path';
+import uploadRouter from './routes/uploadRoutes.ts';
+import InitializationError from './utils/errors.ts';
 
-const prisma = new Prisma.PrismaClient()
+const prisma = new Prisma.PrismaClient();
 
-const app = express();
+function init() {
+  const dirName = import.meta.dirname;
+  if (!dirName) {
+    throw new InitializationError('dirname is not defined');
+  }
+  const app = express();
+  const PORT = Deno.env.get('PORT');
+  const env = Deno.env.get('NODE_ENV');
 
-const PORT = Deno.env.get("PORT")
-const env = Deno.env.get("NODE_ENV")
+  app.use(
+    '/public',
+    express.static(path.join(dirName, '../public')),
+  );
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use('/upload', uploadRouter);
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${env} mode at http://localhost:${PORT}`)
-});
+  // TODO: go through the project requirements
 
-async function findUser() {
-  return await prisma.user.findUnique({
-    where: {
-      id: 1
-    }
-  })
-
+  app.listen(PORT, () => {
+    console.log(`Server running in ${env} mode at http://localhost:${PORT}`);
+  });
 }
 
 (async () => {
   try {
-    const user = await findUser();
-    console.log('Found user:', user);
+    init();
   } catch (error) {
     console.error('Error:', error);
   } finally {
