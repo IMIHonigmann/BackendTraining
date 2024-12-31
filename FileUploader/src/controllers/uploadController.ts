@@ -1,5 +1,6 @@
 import multer from 'multer';
 import * as path from 'jsr:@std/path';
+import fs from 'node:fs';
 import notifyBoth from '../utils/consoleFuncs.ts';
 import createPathIfNotExists from '../utils/path.ts';
 import InitializationError from '../utils/errors.ts';
@@ -13,15 +14,7 @@ if (!dirName) {
 const uploadDir = path.join(dirName, '../../uploads');
 
 createPathIfNotExists(uploadDir);
-const storage = multer.diskStorage({
-  destination: function (_req, _file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (_req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '--' + file.originalname);
-  },
-});
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 async function storeFileAtDB(req, res, next) {
@@ -32,7 +25,6 @@ async function storeFileAtDB(req, res, next) {
     },
   });
 
-  // TODO: Delete the uploaded file from the server directory when the upload to prisma is done
   // TODO: Add user authentication
   // TODO: use the values of the authenticated user for looking up prisma folders
   // TODO: Add checking for the accessibility options (so users can only access folders where they have viewing rights)
@@ -45,9 +37,6 @@ async function storeFileAtDB(req, res, next) {
     return;
   }
 
-  const fileBuffer = await Deno.readFile(req.file.path);
-  const stats = await Deno.stat(req.file.path);
-
   const formattedMimeType: MimeType = req.file.mimetype.toUpperCase().replace(
     /\//g,
     '_',
@@ -57,8 +46,8 @@ async function storeFileAtDB(req, res, next) {
       fileName: req.file.originalname,
       folderLocation: '/uploads/sigma/ligma',
       mimeType: formattedMimeType,
-      byteSize: BigInt(stats.size),
-      bytes: fileBuffer,
+      byteSize: BigInt(req.file.size),
+      bytes: req.file.buffer,
       ownerId: user.id, // insert an arbitrary user until authentication is implemented
       fileAccessTo: 'PUBLIC',
     },
