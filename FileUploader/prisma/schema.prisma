@@ -13,8 +13,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum FileAccessLevels {
+  PRIVATE
+  INVITATION
+  PUBLIC
+}
+
+enum MimeType {
+  IMAGE_JPEG
+  IMAGE_PNG
+  IMAGE_GIF
+  IMAGE_BMP
+  APPLICATION_PDF
+  APPLICATION_JSON
+  TEXT_HTML
+  TEXT_PLAIN
+  VIDEO_MP4
+  AUDIO_MPEG
+}
+
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
-  name  String?
+  username  String
+  UserAccessibleFile UserAccessibleFile[]
+
+  File File[]
+}
+
+model File {
+  id Int @id @default(autoincrement())
+  fileName String
+  folderLocation String
+  mimeType MimeType
+  byteSize BigInt
+  bytes Bytes
+  ownerId Int
+  user User @relation(fields: [ownerId], references: [id])
+  fileAccessTo FileAccessLevels
+
+  userAccessibleFile UserAccessibleFile[]
+}
+
+model UserAccessibleFile {
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  accessibleFileId Int
+  file File @relation(fields: [accessibleFileId], references: [id])
+
+  @@id([userId, accessibleFileId])
 }
